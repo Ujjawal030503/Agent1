@@ -1,5 +1,5 @@
 import { db } from './database.js';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -33,14 +33,12 @@ async function initializeMigrationsTable(): Promise<void> {
 
 // Get list of available migrations
 function getAvailableMigrations(): Migration[] {
-  const fs = await import('fs');
-  
-  if (!fs.existsSync(MIGRATIONS_DIR)) {
+  if (!existsSync(MIGRATIONS_DIR)) {
     console.log(`📂 Migrations directory not found: ${MIGRATIONS_DIR}`);
     return [];
   }
 
-  const files = fs.readdirSync(MIGRATIONS_DIR)
+  const files = readdirSync(MIGRATIONS_DIR)
     .filter(file => file.endsWith('.sql'))
     .sort((a, b) => a.localeCompare(b));
 
@@ -66,9 +64,8 @@ async function getAppliedMigrations(): Promise<Migration[]> {
 
 // Load migration SQL content
 function loadMigration(filename: string): string {
-  const fs = await import('fs');
   const path = join(MIGRATIONS_DIR, filename);
-  return fs.readFileSync(path, 'utf8');
+  return readFileSync(path, 'utf8');
 }
 
 // Run a single migration
