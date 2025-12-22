@@ -29,27 +29,41 @@ export class BrandValidatorService {
       }
     }
 
-    // 2. Check tone and personality (LLM)
-    if (brandKit.tone || brandKit.personality || brandKit.example_posts) {
+    // 2. Check words to use (Deterministic)
+    if (brandKit.words_to_use && brandKit.words_to_use.length > 0) {
+      const lowerPost = postText.toLowerCase();
+      const usedWords = brandKit.words_to_use.filter(word => 
+        lowerPost.includes(word.toLowerCase())
+      );
+
+      if (usedWords.length > 0) {
+        notes.push(`Good use of brand words: ${usedWords.join(', ')}`);
+      } else {
+        score -= 10;
+        notes.push(`Could use more brand words: ${brandKit.words_to_use.slice(0, 3).join(', ')}...`);
+      }
+    }
+
+    // 3. Check tone and personality (LLM)
+    const hasToneGuidelines = brandKit.tone || brandKit.personality || brandKit.example_posts;
+    
+    if (hasToneGuidelines) {
       const validationPrompt = this.buildValidationPrompt(postText, brandKit);
       try {
         const llmResponse = await llmService.complete(validationPrompt);
         const analysis = this.parseLLMResponse(llmResponse);
         
         if (analysis) {
-            // Average the deterministic score with LLM score or just take the minimum?
-            // Let's take the LLM score but penalize further if we found prohibited words earlier.
-            // Actually, let's trust the LLM's holistic score but ensure our hard constraints lower it.
-            
             let llmScore = analysis.score;
             if (typeof llmScore !== 'number') llmScore = 80; // Default if missing
 
             // If we found words to avoid, ensure the score is low regardless of LLM
-            if (notes.length > 0 && llmScore > 70) {
+            if (notes.some(note => note.includes('prohibited words')) && llmScore > 70) {
                 llmScore = 60; 
             }
 
-            score = llmScore;
+            // Combine deterministic and LLM scores (weighted average)
+            score = Math.round((score + llmScore) / 2);
             
             if (analysis.notes && Array.isArray(analysis.notes)) {
                 notes.push(...analysis.notes);
@@ -67,6 +81,9 @@ export class BrandValidatorService {
         console.error("LLM validation failed", error);
         notes.push("Tone validation failed due to service error.");
       }
+    } else {
+      // Minimal brand kit - only use deterministic checks
+      notes.push("Brand kit has minimal guidelines. Using basic validation only.");
     }
     
     // Ensure score is 0-100
@@ -81,29 +98,40 @@ export class BrandValidatorService {
 
   private buildValidationPrompt(post: string, brandKit: BrandKit): string {
     return `
-      You are a Brand Validator Agent.
+      You are a Brand Validator Agent. Your task is to ensure that social media posts align with brand guidelines.
       
       Brand Guidelines:
-      Tone: ${brandKit.tone || 'Not specified'}
-      Personality: ${brandKit.personality || 'Not specified'}
-      Words to Avoid: ${brandKit.words_to_avoid?.join(', ') || 'None'}
-      Example Style: ${brandKit.example_posts || 'None'}
+      - Brand Name: ${brandKit.brand_name || 'Not specified'}
+      - Tone: ${brandKit.tone || 'Not specified'}
+      - Personality: ${brandKit.personality || 'Not specified'}
+      - Words to Avoid: ${brandKit.words_to_avoid?.join(', ') || 'None'}
+      - Words to Use: ${brandKit.words_to_use?.join(', ') || 'None'}
+      - Example Style: ${brandKit.example_posts || 'None'}
 
       Post to Validate:
       "${post}"
 
-      Task:
-      1. Check if the post aligns with the brand personality and tone.
-      2. Check for words to avoid (if any).
-      3. Assign a consistency score (0-100).
-      4. Provide brief feedback notes.
-      5. Suggest a revision if the score is below 80.
+      Validation Instructions:
+      1. Analyze the post for alignment with brand personality and tone.
+      2. Check for any words to avoid in the post.
+      3. Verify if the post uses recommended brand words.
+      4. Compare the style to the example posts (if provided).
+      5. Assign a consistency score (0-100) based on overall brand alignment.
+      6. Provide specific feedback notes about what works well and what could be improved.
+      7. If the score is below 80, suggest a revised version that better aligns with brand guidelines.
+
+      Scoring Guidelines:
+      - 90-100: Perfect alignment with brand guidelines
+      - 80-89: Good alignment with minor improvements needed
+      - 70-79: Moderate alignment with noticeable issues
+      - 60-69: Poor alignment with significant issues
+      - Below 60: Major misalignment with brand guidelines
 
       Output JSON format:
       {
-        "score": number,
-        "notes": string[],
-        "revised_post": string | null
+        "score": number, // 0-100 consistency score
+        "notes": string[], // Specific feedback about alignment
+        "revised_post": string | null // Suggested revision if score < 80
       }
     `;
   }
@@ -118,6 +146,16 @@ export class BrandValidatorService {
         return JSON.parse(response);
     } catch (e) {
         console.warn("Failed to parse LLM response", e);
+        // Fallback: try to extract score and notes from text
+        const scoreMatch = response.match(/score[\s:]*(\d+)/i);
+        const notesMatch = response.match(/notes[\s:]*([\s\S]*)/i);
+        
+        if (scoreMatch) {
+            const score = parseInt(scoreMatch[1]);
+            const notes = notesMatch ? [notesMatch[1].trim()] : ["Manual validation: Check brand alignment"];
+            return { score, notes, revised_post: null };
+        }
+        
         return null;
     }
   }

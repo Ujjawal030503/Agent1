@@ -9,7 +9,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint src/**/*.ts --ext .ts --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -33,6 +35,8 @@
     "@types/node": "^20.10.5",
     "@types/pg": "^8.10.9",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0"
   }
 }
