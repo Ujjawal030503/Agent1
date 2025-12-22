@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, FormEvent } from 'react';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useToast } from '@/contexts/ToastContext';
-import { brandKitApi, BrandKit } from '@/lib/api';
+import { brandKitApi, contentApi, BrandKit } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,31 +66,25 @@ export default function GenerateContentPage() {
     setIsGenerating(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      const response = await contentApi.generate(
+        niche,
+        platform,
+        selectedBrandKit || undefined
+      );
 
-      const mockPosts: Post[] = [
-        {
-          id: '1',
-          platform,
-          text: `Just discovered something amazing about ${niche}! 🚀\n\nHere's what I learned that changed everything...\n\n[Thread 1/5]`,
-          confidence_score: 0.87,
-        },
-        {
-          id: '2',
-          platform,
-          text: `The ${niche} industry is evolving fast. Here are 3 trends you can't ignore:\n\n1. Innovation in AI integration\n2. Focus on sustainability\n3. User-centric design\n\nWhat trends are you seeing? Let's delve into this further and leverage our collective expertise to unlock new opportunities.`,
-          confidence_score: 0.92,
-        },
-        {
-          id: '3',
-          platform,
-          text: `Pro tip for anyone working in ${niche}:\n\nDon't just follow best practices—understand WHY they work.\n\nThat's the difference between copying and creating.`,
-          confidence_score: 0.78,
-        },
-      ];
+      if (response.success && response.data) {
+        const posts: Post[] = response.data.map((p) => ({
+          id: p.id,
+          platform: p.platform,
+          text: p.post_text,
+          confidence_score: p.confidence_score ? p.confidence_score / 100 : undefined,
+          validation_notes: p.validation_notes,
+          revised_text: p.revised_text,
+        }));
 
-      setGeneratedPosts(mockPosts);
-      showToast('Content generated successfully!', 'success');
+        setGeneratedPosts(posts);
+        showToast('Content generated successfully!', 'success');
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate content';
       showToast(errorMessage, 'error');
