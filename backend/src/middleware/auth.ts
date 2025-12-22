@@ -14,6 +14,9 @@ declare global {
   }
 }
 
+// Export the interface for compatibility if needed, though typically express.Request is used
+export interface AuthenticatedRequest extends Request {}
+
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
@@ -37,3 +40,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     next(error);
   }
 };
+
+// Maintain compatibility with existing code
+export const authenticateJWT = authenticate;
+export const requireAuth = authenticate;

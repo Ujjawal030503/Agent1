@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
+import brandKitRoutes from './routes/brandKit';
 import { logger } from './utils/logger';
 
 // CORS configuration inline
@@ -75,6 +76,7 @@ if (process.env.NODE_ENV !== 'test') {
 // Routes
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
+app.use('/brand-kit', brandKitRoutes);
 
 // API version prefix for future routes
 app.use('/api/v1', (req, res, next) => {
