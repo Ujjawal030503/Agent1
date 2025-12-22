@@ -8,26 +8,21 @@ import { brandKitApi, BrandKit } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { Sparkles, Copy, CheckCircle } from 'lucide-react';
-
-interface GeneratedPost {
-  id: string;
-  platform: string;
-  text: string;
-  isEditing: boolean;
-  copied: boolean;
-}
+import { Sparkles } from 'lucide-react';
+import PostCard, { Post } from '@/components/post/PostCard';
+import BulkActions from '@/components/post/BulkActions';
+import GeneratingLoader from '@/components/post/GeneratingLoader';
 
 export default function GenerateContentPage() {
   const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
   const [niche, setNiche] = useState('');
   const [platform, setPlatform] = useState('reddit');
   const [selectedBrandKit, setSelectedBrandKit] = useState('');
+  const [selectedBrandKitData, setSelectedBrandKitData] = useState<BrandKit | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPosts, setGeneratedPosts] = useState<GeneratedPost[]>([]);
+  const [generatedPosts, setGeneratedPosts] = useState<Post[]>([]);
   const { showToast } = useToast();
 
   const loadBrandKits = useCallback(async () => {
@@ -46,6 +41,15 @@ export default function GenerateContentPage() {
     loadBrandKits();
   }, [loadBrandKits]);
 
+  useEffect(() => {
+    if (selectedBrandKit) {
+      const brandKit = brandKits.find((kit) => kit.id === selectedBrandKit);
+      setSelectedBrandKitData(brandKit || null);
+    } else {
+      setSelectedBrandKitData(null);
+    }
+  }, [selectedBrandKit, brandKits]);
+
   const handleGenerate = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -62,29 +66,26 @@ export default function GenerateContentPage() {
     setIsGenerating(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2500));
 
-      const mockPosts: GeneratedPost[] = [
+      const mockPosts: Post[] = [
         {
           id: '1',
           platform,
           text: `Just discovered something amazing about ${niche}! 🚀\n\nHere's what I learned that changed everything...\n\n[Thread 1/5]`,
-          isEditing: false,
-          copied: false,
+          confidence_score: 0.87,
         },
         {
           id: '2',
           platform,
-          text: `The ${niche} industry is evolving fast. Here are 3 trends you can't ignore:\n\n1. Innovation in AI integration\n2. Focus on sustainability\n3. User-centric design\n\nWhat trends are you seeing?`,
-          isEditing: false,
-          copied: false,
+          text: `The ${niche} industry is evolving fast. Here are 3 trends you can't ignore:\n\n1. Innovation in AI integration\n2. Focus on sustainability\n3. User-centric design\n\nWhat trends are you seeing? Let's delve into this further and leverage our collective expertise to unlock new opportunities.`,
+          confidence_score: 0.92,
         },
         {
           id: '3',
           platform,
           text: `Pro tip for anyone working in ${niche}:\n\nDon't just follow best practices—understand WHY they work.\n\nThat's the difference between copying and creating.`,
-          isEditing: false,
-          copied: false,
+          confidence_score: 0.78,
         },
       ];
 
@@ -98,56 +99,64 @@ export default function GenerateContentPage() {
     }
   };
 
-  const handleCopy = async (post: GeneratedPost) => {
-    try {
-      await navigator.clipboard.writeText(post.text);
-      setGeneratedPosts((prev) =>
-        prev.map((p) => (p.id === post.id ? { ...p, copied: true } : p))
-      );
-      showToast('Copied to clipboard!', 'success');
-
-      setTimeout(() => {
-        setGeneratedPosts((prev) =>
-          prev.map((p) => (p.id === post.id ? { ...p, copied: false } : p))
-        );
-      }, 2000);
-    } catch {
-      showToast('Failed to copy to clipboard', 'error');
-    }
-  };
-
-  const handleEdit = (postId: string) => {
+  const handleUpdatePost = (id: string, newText: string) => {
     setGeneratedPosts((prev) =>
-      prev.map((p) => (p.id === postId ? { ...p, isEditing: true } : p))
-    );
-  };
-
-  const handleSaveEdit = (postId: string, newText: string) => {
-    setGeneratedPosts((prev) =>
-      prev.map((p) => (p.id === postId ? { ...p, text: newText, isEditing: false } : p))
+      prev.map((post) => (post.id === id ? { ...post, text: newText } : post))
     );
     showToast('Post updated', 'success');
   };
 
-  const getPlatformBadgeColor = (platform: string) => {
-    switch (platform) {
-      case 'reddit':
-        return 'bg-orange-100 text-orange-800';
-      case 'linkedin':
-        return 'bg-blue-100 text-blue-800';
-      case 'x':
-        return 'bg-gray-800 text-white';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const handleDeletePost = (id: string) => {
+    setGeneratedPosts((prev) => prev.filter((post) => post.id !== id));
+    showToast('Post deleted', 'success');
+  };
+
+  const handleCopyPost = (post: Post) => {
+    showToast('Copied to clipboard!', 'success');
+  };
+
+  const handleCopyAll = async () => {
+    try {
+      const allPostsText = generatedPosts
+        .map((post, index) => `Post ${index + 1} (${post.platform}):\n${post.text}`)
+        .join('\n\n---\n\n');
+      await navigator.clipboard.writeText(allPostsText);
+      showToast('All posts copied to clipboard!', 'success');
+    } catch (error) {
+      showToast('Failed to copy posts', 'error');
     }
   };
 
-  const getPlatformName = (platform: string) => {
-    switch (platform) {
-      case 'x':
-        return 'X (Twitter)';
-      default:
-        return platform.charAt(0).toUpperCase() + platform.slice(1);
+  const handleExport = () => {
+    try {
+      const allPostsText = generatedPosts
+        .map(
+          (post, index) =>
+            `Post ${index + 1} - ${post.platform.toUpperCase()}\n` +
+            `Confidence: ${post.confidence_score ? Math.round(post.confidence_score * 100) : 'N/A'}%\n` +
+            `\n${post.text}\n`
+        )
+        .join('\n---\n\n');
+
+      const blob = new Blob([allPostsText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${niche.replace(/\s+/g, '-')}-posts-${Date.now()}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('Posts exported successfully!', 'success');
+    } catch (error) {
+      showToast('Failed to export posts', 'error');
+    }
+  };
+
+  const handleDeleteAll = () => {
+    if (confirm('Are you sure you want to delete all posts?')) {
+      setGeneratedPosts([]);
+      showToast('All posts cleared', 'success');
     }
   };
 
@@ -233,89 +242,31 @@ export default function GenerateContentPage() {
             </form>
           </Card>
 
-          {generatedPosts.length > 0 && (
+          {isGenerating && <GeneratingLoader />}
+
+          {!isGenerating && generatedPosts.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Generated Posts</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Generated Posts</h2>
+              </div>
+
+              <BulkActions
+                posts={generatedPosts}
+                onCopyAll={handleCopyAll}
+                onExport={handleExport}
+                onDeleteAll={handleDeleteAll}
+              />
+
               <div className="grid gap-4">
                 {generatedPosts.map((post) => (
-                  <Card key={post.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlatformBadgeColor(
-                            post.platform
-                          )}`}
-                        >
-                          {getPlatformName(post.platform)}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleCopy(post)}
-                          disabled={post.copied}
-                        >
-                          {post.copied ? (
-                            <>
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Copied!
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="h-4 w-4 mr-1" />
-                              Copy
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {post.isEditing ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={post.text}
-                            onChange={(e) => {
-                              const newText = e.target.value;
-                              setGeneratedPosts((prev) =>
-                                prev.map((p) => (p.id === post.id ? { ...p, text: newText } : p))
-                              );
-                            }}
-                            rows={6}
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleSaveEdit(post.id, post.text)}
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                setGeneratedPosts((prev) =>
-                                  prev.map((p) => (p.id === post.id ? { ...p, isEditing: false } : p))
-                                )
-                              }
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="text-gray-900 whitespace-pre-wrap">{post.text}</p>
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="mt-2 px-0"
-                            onClick={() => handleEdit(post.id)}
-                          >
-                            Edit post
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    wordsToAvoid={selectedBrandKitData?.words_to_avoid || []}
+                    onUpdate={handleUpdatePost}
+                    onDelete={handleDeletePost}
+                    onCopy={handleCopyPost}
+                  />
                 ))}
               </div>
             </div>
