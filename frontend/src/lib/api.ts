@@ -203,3 +203,20 @@ export const brandKitApi = {
     apiClient.put<ApiResponse<BrandKit>>(`/brand-kit/${id}`, data),
   delete: (id: string) => apiClient.delete<ApiResponse>(`/brand-kit/${id}`),
 };
+
+export interface GeneratedPost {
+  id: string;
+  content_request_id: string;
+  platform: string;
+  post_text: string;
+  confidence_score: number | null;
+  created_at: string;
+  updated_at?: string;
+  validation_notes?: string[];
+  revised_text?: string | null;
+}
+
+export const contentApi = {
+  generate: (niche: string, platform: string, brandKitId?: string) =>
+    apiClient.post<ApiResponse<GeneratedPost[]>>('/content/generate', { niche, platform, brandKitId }),
+};

@@ -11,6 +11,8 @@ export interface Post {
   platform: string;
   text: string;
   confidence_score?: number;
+  validation_notes?: string[];
+  revised_text?: string | null;
 }
 
 interface PostCardProps {
@@ -166,6 +168,19 @@ export default function PostCard({
             >
               Edit post
             </Button>
+          </div>
+        )}
+
+        {post.validation_notes && post.validation_notes.length > 0 && (
+          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <h4 className="text-sm font-semibold text-yellow-800 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" /> Validation Notes
+            </h4>
+            <ul className="list-disc list-inside text-sm text-yellow-700 mt-1">
+              {post.validation_notes.map((note, i) => (
+                <li key={i}>{note}</li>
+              ))}
+            </ul>
           </div>
         )}
       </CardContent>

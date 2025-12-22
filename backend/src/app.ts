@@ -6,6 +6,7 @@ import { globalErrorHandler, notFoundHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
 import brandKitRoutes from './routes/brandKit';
+import contentRoutes from './routes/content';
 import { logger } from './utils/logger';
 
 // CORS configuration inline
@@ -77,6 +78,7 @@ if (process.env.NODE_ENV !== 'test') {
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
 app.use('/brand-kit', brandKitRoutes);
+app.use('/content', contentRoutes);
 
 // API version prefix for future routes
 app.use('/api/v1', (req, res, next) => {
