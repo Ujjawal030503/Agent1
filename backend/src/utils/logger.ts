@@ -86,7 +86,7 @@ function colorize(level: string, message: string, colorize: boolean): string {
 
 // Main Logger class
 export class Logger {
-  private config: LoggerConfig;
+  public readonly config: LoggerConfig;
 
   constructor(config?: Partial<LoggerConfig>) {
     this.config = { ...getDefaultConfig(), ...config };

@@ -11,7 +11,12 @@ export class BrandKitService {
     try {
       const brandKit = await brandKitRepo.create({
         user_id: userId,
-        ...data
+        brand_name: data.brand_name,
+        tone: data.tone || null,
+        personality: data.personality || null,
+        words_to_use: data.words_to_use || null,
+        words_to_avoid: data.words_to_avoid || null,
+        example_posts: data.example_posts || null
       });
 
       return brandKit;
@@ -66,7 +71,14 @@ export class BrandKitService {
       const existingBrandKit = await this.getBrandKitById(brandKitId, userId);
 
       // Update the brand kit
-      const updatedBrandKit = await brandKitRepo.update(brandKitId, data);
+      const updatedBrandKit = await brandKitRepo.update(brandKitId, {
+        ...data,
+        tone: data.tone === undefined ? undefined : (data.tone || null),
+        personality: data.personality === undefined ? undefined : (data.personality || null),
+        words_to_use: data.words_to_use === undefined ? undefined : (data.words_to_use || null),
+        words_to_avoid: data.words_to_avoid === undefined ? undefined : (data.words_to_avoid || null),
+        example_posts: data.example_posts === undefined ? undefined : (data.example_posts || null)
+      });
 
       if (!updatedBrandKit) {
         throw new AppError('Brand kit not found', 404);

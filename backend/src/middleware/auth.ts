@@ -1,72 +1,46 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from './errorHandler.js';
+import { verifyToken } from '../utils/auth';
+import { AppError } from './errorHandler';
+import { logger } from '../utils/logger';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+        email: string;
+      };
+    }
+  }
 }
 
-export const authenticateJWT = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void => {
+// Export the interface for compatibility if needed, though typically express.Request is used
+export interface AuthenticatedRequest extends Request {}
+
+export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
-    
     if (!authHeader) {
-      throw new AppError('Authorization header missing', 401);
+      throw new AppError('No token provided', 401);
     }
 
-    const token = authHeader.startsWith('Bearer ') 
-      ? authHeader.slice(7) 
-      : authHeader;
+    const token = authHeader.split(' ')[1]; // Bearer <token>
+    if (!token) {
+      throw new AppError('Invalid token format', 401);
+    }
 
-    // For this implementation, we'll use a mock JWT validation
-    // In production, you would use a library like jsonwebtoken
-    // to verify the token against your secret key
-    
-    // Mock JWT payload extraction - replace with actual JWT verification
-    const mockPayload = decodeMockJWT(token);
-    
-    if (!mockPayload) {
+    try {
+      const decoded = verifyToken(token) as { userId: string; email: string };
+      req.user = decoded;
+      next();
+    } catch (err) {
       throw new AppError('Invalid or expired token', 401);
     }
-
-    req.user = {
-      id: mockPayload.userId,
-      email: mockPayload.email
-    };
-
-    next();
   } catch (error) {
     next(error);
   }
 };
 
-// Mock JWT decoder - replace with actual JWT verification in production
-function decodeMockJWT(token: string): { userId: string; email: string } | null {
-  try {
-    // In a real implementation, you would use:
-    // jwt.verify(token, process.env.JWT_SECRET!)
-    
-    // For development, we'll accept any token and extract user info
-    // This is a placeholder for actual JWT implementation
-    
-    // Mock validation - accept tokens that look like UUIDs
-    if (token.length >= 36) {
-      return {
-        userId: token,
-        email: 'user@example.com' // Would be extracted from actual JWT
-      };
-    }
-    
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export const requireAuth = authenticateJWT;
+// Maintain compatibility with existing code
+export const authenticateJWT = authenticate;
+export const requireAuth = authenticate;

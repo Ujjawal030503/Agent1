@@ -78,11 +78,11 @@ export interface CreateUser {
 export interface CreateBrandKit {
   user_id: UUID;
   brand_name: string;
-  tone?: string;
-  personality?: string;
-  words_to_use?: string[];
-  words_to_avoid?: string[];
-  example_posts?: string;
+  tone?: string | null;
+  personality?: string | null;
+  words_to_use?: string[] | null;
+  words_to_avoid?: string[] | null;
+  example_posts?: string | null;
 }
 
 export interface CreateContentRequest {
@@ -115,11 +115,11 @@ export interface UpdateUser {
 
 export interface UpdateBrandKit {
   brand_name?: string;
-  tone?: string;
-  personality?: string;
-  words_to_use?: string[];
-  words_to_avoid?: string[];
-  example_posts?: string;
+  tone?: string | null;
+  personality?: string | null;
+  words_to_use?: string[] | null;
+  words_to_avoid?: string[] | null;
+  example_posts?: string | null;
 }
 
 export interface UpdateContentRequest {

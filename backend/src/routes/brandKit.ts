@@ -20,9 +20,9 @@ router.use(requireAuth);
  */
 router.post('/', async (req: AuthenticatedRequest, res, next) => {
   try {
-    logger.info('Creating new brand kit', { userId: req.user?.id });
+    logger.info('Creating new brand kit', { userId: req.user?.userId });
 
-    if (!req.user?.id) {
+    if (!req.user?.userId) {
       throw new AppError('User not authenticated', 401);
     }
 
@@ -38,7 +38,7 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
 
     // Create brand kit
     const brandKit = await brandKitService.createBrandKit(
-      req.user.id,
+      req.user.userId,
       validationResult.data
     );
 
@@ -57,13 +57,13 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
  */
 router.get('/', async (req: AuthenticatedRequest, res, next) => {
   try {
-    logger.info('Fetching brand kits for user', { userId: req.user?.id });
+    logger.info('Fetching brand kits for user', { userId: req.user?.userId });
 
-    if (!req.user?.id) {
+    if (!req.user?.userId) {
       throw new AppError('User not authenticated', 401);
     }
 
-    const brandKits = await brandKitService.getUserBrandKits(req.user.id);
+    const brandKits = await brandKitService.getUserBrandKits(req.user.userId);
 
     res.status(200).json({
       success: true,
@@ -83,9 +83,9 @@ router.get('/:id', async (req: AuthenticatedRequest, res, next) => {
   try {
     const { id } = req.params;
 
-    logger.info('Fetching brand kit', { brandKitId: id, userId: req.user?.id });
+    logger.info('Fetching brand kit', { brandKitId: id, userId: req.user?.userId });
 
-    if (!req.user?.id) {
+    if (!req.user?.userId) {
       throw new AppError('User not authenticated', 401);
     }
 
@@ -95,7 +95,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res, next) => {
       throw new AppError('Invalid brand kit ID format', 400);
     }
 
-    const brandKit = await brandKitService.getBrandKitById(id, req.user.id);
+    const brandKit = await brandKitService.getBrandKitById(id, req.user.userId);
 
     res.status(200).json({
       success: true,
@@ -114,9 +114,9 @@ router.put('/:id', async (req: AuthenticatedRequest, res, next) => {
   try {
     const { id } = req.params;
 
-    logger.info('Updating brand kit', { brandKitId: id, userId: req.user?.id });
+    logger.info('Updating brand kit', { brandKitId: id, userId: req.user?.userId });
 
-    if (!req.user?.id) {
+    if (!req.user?.userId) {
       throw new AppError('User not authenticated', 401);
     }
 
@@ -143,7 +143,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res, next) => {
 
     const updatedBrandKit = await brandKitService.updateBrandKit(
       id,
-      req.user.id,
+      req.user.userId,
       validationResult.data
     );
 
@@ -164,9 +164,9 @@ router.delete('/:id', async (req: AuthenticatedRequest, res, next) => {
   try {
     const { id } = req.params;
 
-    logger.info('Deleting brand kit', { brandKitId: id, userId: req.user?.id });
+    logger.info('Deleting brand kit', { brandKitId: id, userId: req.user?.userId });
 
-    if (!req.user?.id) {
+    if (!req.user?.userId) {
       throw new AppError('User not authenticated', 401);
     }
 
@@ -176,7 +176,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res, next) => {
       throw new AppError('Invalid brand kit ID format', 400);
     }
 
-    await brandKitService.deleteBrandKit(id, req.user.id);
+    await brandKitService.deleteBrandKit(id, req.user.userId);
 
     res.status(204).send();
   } catch (error) {
