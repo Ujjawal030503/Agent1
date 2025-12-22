@@ -16,10 +16,10 @@ export default function Home() {
         </span>
         <div className="flex flex-col gap-4 sm:flex-row mt-6">
           <Button asChild size="lg" className="rounded-full">
-            <Link href="/dashboard">Get Started Free</Link>
+            <Link href="/register">Get Started Free</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-full">
-            <Link href="/demo">View Demo</Link>
+            <Link href="/login">Login</Link>
           </Button>
         </div>
       </section>
@@ -36,7 +36,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Generate engaging posts, captions, and hashtags that match your brand's 
+                  Generate engaging posts, captions, and hashtags that match your brand&apos;s 
                   unique style and audience preferences.
                 </p>
               </CardContent>
