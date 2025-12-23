@@ -1,4 +1,4 @@
-import { BrandKit } from '../../../shared/types/database.js';
+import type { BrandKit } from '../../../shared/types/database.js';
 import { llmService } from './llmService.js';
 
 export interface ValidationResult {
@@ -20,7 +20,7 @@ export class BrandValidatorService {
     if (brandKit.words_to_avoid && brandKit.words_to_avoid.length > 0) {
       const lowerPost = postText.toLowerCase();
       const foundWords = brandKit.words_to_avoid.filter(word => 
-        lowerPost.includes(word.toLowerCase())
+        lowerPost.includes(word.toLowerCase()),
       );
 
       if (foundWords.length > 0) {
@@ -33,7 +33,7 @@ export class BrandValidatorService {
     if (brandKit.words_to_use && brandKit.words_to_use.length > 0) {
       const lowerPost = postText.toLowerCase();
       const usedWords = brandKit.words_to_use.filter(word => 
-        lowerPost.includes(word.toLowerCase())
+        lowerPost.includes(word.toLowerCase()),
       );
 
       if (usedWords.length > 0) {
@@ -54,36 +54,36 @@ export class BrandValidatorService {
         const analysis = this.parseLLMResponse(llmResponse);
         
         if (analysis) {
-            let llmScore = analysis.score;
-            if (typeof llmScore !== 'number') llmScore = 80; // Default if missing
+          let llmScore = analysis.score;
+          if (typeof llmScore !== 'number') llmScore = 80; // Default if missing
 
-            // If we found words to avoid, ensure the score is low regardless of LLM
-            if (notes.some(note => note.includes('prohibited words')) && llmScore > 70) {
-                llmScore = 60; 
-            }
+          // If we found words to avoid, ensure the score is low regardless of LLM
+          if (notes.some(note => note.includes('prohibited words')) && llmScore > 70) {
+            llmScore = 60; 
+          }
 
-            // Combine deterministic and LLM scores (weighted average)
-            score = Math.round((score + llmScore) / 2);
+          // Combine deterministic and LLM scores (weighted average)
+          score = Math.round((score + llmScore) / 2);
             
-            if (analysis.notes && Array.isArray(analysis.notes)) {
-                notes.push(...analysis.notes);
-            }
+          if (analysis.notes && Array.isArray(analysis.notes)) {
+            notes.push(...analysis.notes);
+          }
             
-            if (analysis.revised_post) {
-                return {
-                    score,
-                    notes,
-                    revisedText: analysis.revised_post
-                };
-            }
+          if (analysis.revised_post) {
+            return {
+              score,
+              notes,
+              revisedText: analysis.revised_post,
+            };
+          }
         }
       } catch (error) {
-        console.error("LLM validation failed", error);
-        notes.push("Tone validation failed due to service error.");
+        console.error('LLM validation failed', error);
+        notes.push('Tone validation failed due to service error.');
       }
     } else {
       // Minimal brand kit - only use deterministic checks
-      notes.push("Brand kit has minimal guidelines. Using basic validation only.");
+      notes.push('Brand kit has minimal guidelines. Using basic validation only.');
     }
     
     // Ensure score is 0-100
@@ -92,7 +92,7 @@ export class BrandValidatorService {
     return {
       score,
       notes,
-      revisedText: null
+      revisedText: null,
     };
   }
 
@@ -138,25 +138,25 @@ export class BrandValidatorService {
 
   private parseLLMResponse(response: string): any {
     try {
-        // Try to find JSON in the response (handling markdown code blocks)
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]);
-        }
-        return JSON.parse(response);
+      // Try to find JSON in the response (handling markdown code blocks)
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      return JSON.parse(response);
     } catch (e) {
-        console.warn("Failed to parse LLM response", e);
-        // Fallback: try to extract score and notes from text
-        const scoreMatch = response.match(/score[\s:]*(\d+)/i);
-        const notesMatch = response.match(/notes[\s:]*([\s\S]*)/i);
+      console.warn('Failed to parse LLM response', e);
+      // Fallback: try to extract score and notes from text
+      const scoreMatch = response.match(/score[\s:]*(\d+)/i);
+      const notesMatch = response.match(/notes[\s:]*([\s\S]*)/i);
         
-        if (scoreMatch) {
-            const score = parseInt(scoreMatch[1]);
-            const notes = notesMatch ? [notesMatch[1].trim()] : ["Manual validation: Check brand alignment"];
-            return { score, notes, revised_post: null };
-        }
+      if (scoreMatch) {
+        const score = parseInt(scoreMatch[1]);
+        const notes = notesMatch ? [notesMatch[1].trim()] : ['Manual validation: Check brand alignment'];
+        return { score, notes, revised_post: null };
+      }
         
-        return null;
+      return null;
     }
   }
 }

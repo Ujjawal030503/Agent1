@@ -45,20 +45,20 @@ function getAvailableMigrations(): Migration[] {
   return files.map(file => ({
     version: file.split('_')[0],
     filename: file,
-    applied: false
+    applied: false,
   }));
 }
 
 // Get applied migrations from database
 async function getAppliedMigrations(): Promise<Migration[]> {
   const rows = await db.query<any>(
-    `SELECT version, filename, applied_at FROM ${MIGRATIONS_TABLE} ORDER BY version`
+    `SELECT version, filename, applied_at FROM ${MIGRATIONS_TABLE} ORDER BY version`,
   );
   
   return rows.map(row => ({
     version: row.version,
     filename: row.filename,
-    applied: true
+    applied: true,
   }));
 }
 
@@ -85,7 +85,7 @@ async function runMigration(migration: Migration): Promise<void> {
     // Record migration as applied
     await client.query(
       `INSERT INTO ${MIGRATIONS_TABLE} (version, filename) VALUES ($1, $2)`,
-      [migration.version, migration.filename]
+      [migration.version, migration.filename],
     );
     
     await client.query('COMMIT');

@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { db } from '../config/database';
 import { logger } from '../utils/logger';
 
@@ -30,12 +31,12 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         uptime: process.uptime(),
         memory: {
           used: Math.round(memoryUsage.heapUsed / 1024 / 1024 * 100) / 100 + ' MB',
-          total: Math.round(memoryUsage.heapTotal / 1024 / 1024 * 100) / 100 + ' MB'
+          total: Math.round(memoryUsage.heapTotal / 1024 / 1024 * 100) / 100 + ' MB',
         },
         environment: process.env.NODE_ENV || 'development',
-        version: process.env.npm_package_version || '0.1.0'
+        version: process.env.npm_package_version || '0.1.0',
       },
-      latency: `${duration}ms`
+      latency: `${duration}ms`,
     });
   } catch (error) {
     logger.error('Health check failed:', error);
@@ -43,7 +44,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     res.status(503).json({
       success: false,
       message: 'Service Unavailable',
-      error: process.env.NODE_ENV === 'development' ? error : 'Database connection failed'
+      error: process.env.NODE_ENV === 'development' ? error : 'Database connection failed',
     });
   }
 });

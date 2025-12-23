@@ -1,5 +1,5 @@
 import { BrandValidatorService } from './brandValidatorService';
-import { BrandKit } from '../../../shared/types/database.js';
+import type { BrandKit } from '../../../shared/types/database.js';
 
 describe('BrandValidatorService', () => {
   const validator = new BrandValidatorService();
@@ -14,7 +14,7 @@ describe('BrandValidatorService', () => {
     words_to_avoid: ['cheap', 'easy', 'simple'],
     example_posts: 'Our innovative solutions help experts achieve their goals efficiently.',
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
   };
 
   test('should handle missing brand kit', async () => {
@@ -51,7 +51,7 @@ describe('BrandValidatorService', () => {
       words_to_avoid: null,
       example_posts: null,
       created_at: new Date(),
-      updated_at: new Date()
+      updated_at: new Date(),
     };
     
     const result = await validator.validate('Test post', minimalBrandKit);
@@ -68,7 +68,7 @@ describe('BrandValidatorService', () => {
     const brandKitWithEmptyArrays: BrandKit = {
       ...mockBrandKit,
       words_to_use: [],
-      words_to_avoid: []
+      words_to_avoid: [],
     };
     
     const result = await validator.validate('Test post', brandKitWithEmptyArrays);

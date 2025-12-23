@@ -1,5 +1,5 @@
 import { BrandValidatorService } from './brandValidatorService';
-import { BrandKit } from '../../../shared/types/database.js';
+import type { BrandKit } from '../../../shared/types/database.js';
 
 describe('BrandValidatorService - Acceptance Criteria', () => {
   const validator = new BrandValidatorService();
@@ -14,7 +14,7 @@ describe('BrandValidatorService - Acceptance Criteria', () => {
     words_to_avoid: ['cheap', 'easy', 'simple', 'quick'],
     example_posts: 'Our innovative solutions help experts achieve sustainable growth through strategic planning.',
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
   };
 
   const minimalBrandKit: BrandKit = {
@@ -27,7 +27,7 @@ describe('BrandValidatorService - Acceptance Criteria', () => {
     words_to_avoid: null,
     example_posts: null,
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
   };
 
   describe('✓ Detects words_to_avoid in posts', () => {

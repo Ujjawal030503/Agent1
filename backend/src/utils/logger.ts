@@ -28,7 +28,7 @@ function getDefaultConfig(): LoggerConfig {
     format: isProduction ? 'json' : 'text',
     includeTimestamp: true,
     includeLevel: true,
-    colorize: !isProduction
+    colorize: !isProduction,
   };
 }
 
@@ -44,7 +44,7 @@ function formatArgs(args: any[]): string {
       return inspect(arg, { 
         depth: 5, 
         colors: false, 
-        compact: false 
+        compact: false, 
       });
     }
     return String(arg);
@@ -77,7 +77,7 @@ function colorize(level: string, message: string, colorize: boolean): string {
     info: '\x1b[32m',   // Green
     warn: '\x1b[33m',   // Yellow
     error: '\x1b[31m',  // Red
-    reset: '\x1b[0m'
+    reset: '\x1b[0m',
   };
   
   const color = colors[level.toLowerCase()] || colors.reset;
@@ -113,7 +113,7 @@ export class Logger {
       console.log(JSON.stringify({
         timestamp: new Date().toISOString(),
         level: level.toUpperCase(),
-        message: message
+        message: message,
       }));
     } else {
       console.log(colored);
@@ -175,8 +175,8 @@ export const log = {
   child: (namespace: string) => new Logger({
     ...logger.config,
     // Add namespace to output for child loggers
-    includeLevel: true
-  })
+    includeLevel: true,
+  }),
 };
 
 export default logger;
