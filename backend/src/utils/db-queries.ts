@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { PoolClient } from 'pg';
 import { db } from '../config/database.js';
-import {
+import type {
   User,
   CreateUser,
   UpdateUser,
@@ -18,9 +18,10 @@ import {
   CreateResearchInsight,
   UpdateResearchInsight,
   UUID,
-  Platform,
   ContentRequestStatus,
-  ResearchSource,
+  ResearchSource } from '../../../shared/types/database.js';
+import {
+  Platform,
 } from '../../../shared/types/database.js';
 import { QueryBuilder } from '../config/database.js';
 
@@ -47,14 +48,14 @@ class BaseRepository<T> {
 
     return {
       query: `SELECT * FROM ${this.tableName}${qb.getWhereClause()}`,
-      params: qb.getParams()
+      params: qb.getParams(),
     };
   }
 
   async findOne(id: UUID): Promise<T | null> {
     return await db.queryOne<T>(
       `SELECT * FROM ${this.tableName} WHERE id = $1`,
-      [id]
+      [id],
     );
   }
 
@@ -66,7 +67,7 @@ class BaseRepository<T> {
   async delete(id: UUID): Promise<void> {
     await db.execute(
       `DELETE FROM ${this.tableName} WHERE id = $1`,
-      [id]
+      [id],
     );
   }
 }
@@ -82,7 +83,7 @@ class UserRepository extends BaseRepository<User> {
       `INSERT INTO users (email, password_hash) 
        VALUES ($1, $2) 
        RETURNING *`,
-      [data.email, data.password_hash]
+      [data.email, data.password_hash],
     );
     return result!;
   }
@@ -104,7 +105,7 @@ class UserRepository extends BaseRepository<User> {
 
     const result = await db.queryOne<User>(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${updates.length + 1} RETURNING *`,
-      [...values, id]
+      [...values, id],
     );
     return result;
   }
@@ -112,7 +113,7 @@ class UserRepository extends BaseRepository<User> {
   async findByEmail(email: string): Promise<User | null> {
     return await db.queryOne<User>(
       'SELECT * FROM users WHERE email = $1',
-      [email]
+      [email],
     );
   }
 }
@@ -135,8 +136,8 @@ class BrandKitRepository extends BaseRepository<BrandKit> {
         data.personality || null,
         data.words_to_use || null,
         data.words_to_avoid || null,
-        data.example_posts || null
-      ]
+        data.example_posts || null,
+      ],
     );
     return result!;
   }
@@ -158,7 +159,7 @@ class BrandKitRepository extends BaseRepository<BrandKit> {
 
     const result = await db.queryOne<BrandKit>(
       `UPDATE brand_kits SET ${updates.join(', ')} WHERE id = $${updates.length + 1} RETURNING *`,
-      [...values, id]
+      [...values, id],
     );
     return result;
   }
@@ -166,7 +167,7 @@ class BrandKitRepository extends BaseRepository<BrandKit> {
   async findByUserId(userId: UUID): Promise<BrandKit[]> {
     return await db.query<BrandKit>(
       'SELECT * FROM brand_kits WHERE user_id = $1 ORDER BY updated_at DESC',
-      [userId]
+      [userId],
     );
   }
 }
@@ -187,8 +188,8 @@ class ContentRequestRepository extends BaseRepository<ContentRequest> {
         data.brand_kit_id || null,
         data.niche,
         data.platform,
-        data.status || 'pending'
-      ]
+        data.status || 'pending',
+      ],
     );
     return result!;
   }
@@ -210,7 +211,7 @@ class ContentRequestRepository extends BaseRepository<ContentRequest> {
 
     const result = await db.queryOne<ContentRequest>(
       `UPDATE content_requests SET ${updates.join(', ')} WHERE id = $${updates.length + 1} RETURNING *`,
-      [...values, id]
+      [...values, id],
     );
     return result;
   }
@@ -222,14 +223,14 @@ class ContentRequestRepository extends BaseRepository<ContentRequest> {
        LEFT JOIN brand_kits bk ON cr.brand_kit_id = bk.id
        WHERE cr.user_id = $1 
        ORDER BY cr.updated_at DESC`,
-      [userId]
+      [userId],
     );
   }
 
   async findByStatus(status: ContentRequestStatus): Promise<ContentRequest[]> {
     return await db.query<ContentRequest>(
       'SELECT * FROM content_requests WHERE status = $1 ORDER BY created_at ASC',
-      [status]
+      [status],
     );
   }
 }
@@ -249,8 +250,8 @@ class GeneratedPostRepository extends BaseRepository<GeneratedPost> {
         data.content_request_id,
         data.platform,
         data.post_text,
-        data.confidence_score || null
-      ]
+        data.confidence_score || null,
+      ],
     );
     return result!;
   }
@@ -272,7 +273,7 @@ class GeneratedPostRepository extends BaseRepository<GeneratedPost> {
 
     const result = await db.queryOne<GeneratedPost>(
       `UPDATE generated_posts SET ${updates.join(', ')} WHERE id = $${updates.length + 1} RETURNING *`,
-      [...values, id]
+      [...values, id],
     );
     return result;
   }
@@ -280,14 +281,14 @@ class GeneratedPostRepository extends BaseRepository<GeneratedPost> {
   async findByContentRequestId(contentRequestId: UUID): Promise<GeneratedPost[]> {
     return await db.query<GeneratedPost>(
       'SELECT * FROM generated_posts WHERE content_request_id = $1 ORDER BY created_at DESC',
-      [contentRequestId]
+      [contentRequestId],
     );
   }
 
   async findTopScored(limit: number = 10): Promise<GeneratedPost[]> {
     return await db.query<GeneratedPost>(
       'SELECT * FROM generated_posts WHERE confidence_score IS NOT NULL ORDER BY confidence_score DESC LIMIT $1',
-      [limit]
+      [limit],
     );
   }
 }
@@ -307,8 +308,8 @@ class ResearchInsightRepository extends BaseRepository<ResearchInsight> {
         data.content_request_id,
         data.source,
         data.summary,
-        data.extracted_language_patterns || null
-      ]
+        data.extracted_language_patterns || null,
+      ],
     );
     return result!;
   }
@@ -330,7 +331,7 @@ class ResearchInsightRepository extends BaseRepository<ResearchInsight> {
 
     const result = await db.queryOne<ResearchInsight>(
       `UPDATE research_insights SET ${updates.join(', ')} WHERE id = $${updates.length + 1} RETURNING *`,
-      [...values, id]
+      [...values, id],
     );
     return result;
   }
@@ -338,14 +339,14 @@ class ResearchInsightRepository extends BaseRepository<ResearchInsight> {
   async findByContentRequestId(contentRequestId: UUID): Promise<ResearchInsight[]> {
     return await db.query<ResearchInsight>(
       'SELECT * FROM research_insights WHERE content_request_id = $1 ORDER BY created_at DESC',
-      [contentRequestId]
+      [contentRequestId],
     );
   }
 
   async findBySource(source: ResearchSource): Promise<ResearchInsight[]> {
     return await db.query<ResearchInsight>(
       'SELECT * FROM research_insights WHERE source = $1 ORDER BY created_at DESC',
-      [source]
+      [source],
     );
   }
 }

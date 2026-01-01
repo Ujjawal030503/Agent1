@@ -1,4 +1,5 @@
-import { Pool, PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -64,8 +65,8 @@ class DatabaseConnection {
       const client = await this.pool.connect();
       
       console.log(
-        `✅ Database connected successfully:` +
-        ` ${this.config.user}@${this.config.host}:${this.config.port}/${this.config.database}`
+        '✅ Database connected successfully:' +
+        ` ${this.config.user}@${this.config.host}:${this.config.port}/${this.config.database}`,
       );
       
       client.release();

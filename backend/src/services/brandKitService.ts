@@ -16,7 +16,7 @@ export class BrandKitService {
         personality: data.personality || null,
         words_to_use: data.words_to_use || null,
         words_to_avoid: data.words_to_avoid || null,
-        example_posts: data.example_posts || null
+        example_posts: data.example_posts || null,
       });
 
       return brandKit;
@@ -77,7 +77,7 @@ export class BrandKitService {
         personality: data.personality === undefined ? undefined : (data.personality || null),
         words_to_use: data.words_to_use === undefined ? undefined : (data.words_to_use || null),
         words_to_avoid: data.words_to_avoid === undefined ? undefined : (data.words_to_avoid || null),
-        example_posts: data.example_posts === undefined ? undefined : (data.example_posts || null)
+        example_posts: data.example_posts === undefined ? undefined : (data.example_posts || null),
       });
 
       if (!updatedBrandKit) {

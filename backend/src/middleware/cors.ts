@@ -1,5 +1,5 @@
 import cors from 'cors';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
 // Verify the logger import exists
@@ -49,8 +49,8 @@ export const errorHandler = ((err: any, req: Request, res: Response, next: NextF
   res.status(status).json({
     error: {
       message: (process.env.NODE_ENV === 'development' ? message : 'Internal Server Error'),
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
   });
 });
 
@@ -61,7 +61,7 @@ export const notFoundHandler = ((req: Request, res: Response) => {
   res.status(404).json({
     error: {
       message: 'Endpoint not found',
-      path: req.path
-    }
+      path: req.path,
+    },
   });
 });

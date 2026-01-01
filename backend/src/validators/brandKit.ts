@@ -29,7 +29,7 @@ export const createBrandKitSchema = z.object({
     .string()
     .max(5000, 'Example posts must be 5000 characters or less')
     .optional()
-    .nullable()
+    .nullable(),
 });
 
 export const updateBrandKitSchema = createBrandKitSchema.partial();

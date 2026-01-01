@@ -17,7 +17,7 @@ router.post('/generate', requireAuth, async (req, res, next) => {
     const { niche, platform, brandKitId } = generateSchema.parse(req.body);
 
     const posts = await contentGenerationService.generate({
-      userId: req.user!.id,
+      userId: req.user!.userId,
       niche,
       platform,
       brandKitId,

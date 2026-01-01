@@ -1,4 +1,5 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../config/database';
 import { hashPassword, comparePassword, generateToken } from '../utils/auth';
@@ -44,7 +45,7 @@ router.post('/register', authLimiter, async (req: Request, res: Response, next: 
     // Create user
     const newUser = await db.queryOne<{ id: string, email: string }>(
       'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
-      [email, hashedPassword]
+      [email, hashedPassword],
     );
 
     if (!newUser) {
@@ -73,8 +74,8 @@ router.post('/login', authLimiter, async (req: Request, res: Response, next: Nex
     const validationResult = loginSchema.safeParse(req.body);
     
     if (!validationResult.success) {
-        const errorMessage = validationResult.error.errors.map(e => e.message).join(', ');
-        throw new AppError(errorMessage, 400);
+      const errorMessage = validationResult.error.errors.map(e => e.message).join(', ');
+      throw new AppError(errorMessage, 400);
     }
 
     const { email, password } = validationResult.data;
@@ -82,7 +83,7 @@ router.post('/login', authLimiter, async (req: Request, res: Response, next: Nex
     // Find user
     const user = await db.queryOne<{ id: string, email: string, password_hash: string }>(
       'SELECT id, email, password_hash FROM users WHERE email = $1',
-      [email]
+      [email],
     );
 
     if (!user) {
@@ -113,12 +114,12 @@ router.post('/login', authLimiter, async (req: Request, res: Response, next: Nex
 
 // Logout (placeholder)
 router.post('/logout', (req: Request, res: Response) => {
-    // Client-side logout (delete token).
-    // Server-side blacklist can be implemented later.
-    res.json({
-        success: true,
-        message: 'Logged out successfully'
-    });
+  // Client-side logout (delete token).
+  // Server-side blacklist can be implemented later.
+  res.json({
+    success: true,
+    message: 'Logged out successfully',
+  });
 });
 
 // Get current user (protected)
@@ -131,7 +132,7 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
 
     const user = await db.queryOne<{ id: string, email: string, created_at: Date }>(
       'SELECT id, email, created_at FROM users WHERE id = $1',
-      [userId]
+      [userId],
     );
 
     if (!user) {
@@ -140,7 +141,7 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
 
     res.json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     next(error);

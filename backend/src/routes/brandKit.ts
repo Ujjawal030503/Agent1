@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import type { AuthenticatedRequest } from '../middleware/auth.js';
+import { requireAuth } from '../middleware/auth.js';
 import { brandKitService } from '../services/brandKitService.js';
 import { 
   createBrandKitSchema, 
   updateBrandKitSchema, 
-  brandKitIdSchema 
+  brandKitIdSchema, 
 } from '../validators/brandKit.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { logger } from '../utils/logger.js';
@@ -32,19 +33,19 @@ router.post('/', async (req: AuthenticatedRequest, res, next) => {
     if (!validationResult.success) {
       throw new AppError(
         `Validation failed: ${validationResult.error.errors.map(e => e.message).join(', ')}`,
-        400
+        400,
       );
     }
 
     // Create brand kit
     const brandKit = await brandKitService.createBrandKit(
       req.user.userId,
-      validationResult.data
+      validationResult.data,
     );
 
     res.status(201).json({
       success: true,
-      data: brandKit
+      data: brandKit,
     });
   } catch (error) {
     next(error);
@@ -68,7 +69,7 @@ router.get('/', async (req: AuthenticatedRequest, res, next) => {
     res.status(200).json({
       success: true,
       data: brandKits,
-      count: brandKits.length
+      count: brandKits.length,
     });
   } catch (error) {
     next(error);
@@ -99,7 +100,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: brandKit
+      data: brandKit,
     });
   } catch (error) {
     next(error);
@@ -132,7 +133,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res, next) => {
     if (!validationResult.success) {
       throw new AppError(
         `Validation failed: ${validationResult.error.errors.map(e => e.message).join(', ')}`,
-        400
+        400,
       );
     }
 
@@ -144,12 +145,12 @@ router.put('/:id', async (req: AuthenticatedRequest, res, next) => {
     const updatedBrandKit = await brandKitService.updateBrandKit(
       id,
       req.user.userId,
-      validationResult.data
+      validationResult.data,
     );
 
     res.status(200).json({
       success: true,
-      data: updatedBrandKit
+      data: updatedBrandKit,
     });
   } catch (error) {
     next(error);
